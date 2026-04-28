@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* ── Accent-Variable (Tailwind dark: nutzt prefers-color-scheme) ── */
+:root {
+  --accent: #6366f1;
+  --accent-muted: #818cf8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #818cf8;
+    --accent-muted: #6366f1;
+  }
+}
+
+html, body, #app {
+  height: 100%;
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+body,
+#app {
+  height: 100dvh;
+  height: -webkit-fill-available;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+body {
+  background: #f8fafc; /* slate-50 */
+  overflow-x: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f172a; /* slate-900 */
+  }
+}
