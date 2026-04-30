@@ -6,7 +6,19 @@ import type { NewsItem } from '@/types/news'
 
 const STORAGE_KEY_FEEDS = 'newsmix:feeds'
 const STORAGE_KEY_NEWS = 'newsmix:cached-news'
-const REFRESH_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
+const STORAGE_KEY_INTERVAL = 'newsmix:refresh-interval'
+const DEFAULT_INTERVAL_MINUTES = 2
+
+function loadIntervalFromStorage(): number {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_INTERVAL)
+    if (raw === null) return DEFAULT_INTERVAL_MINUTES
+    const parsed = parseInt(raw, 10)
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_INTERVAL_MINUTES
+  } catch {
+    return DEFAULT_INTERVAL_MINUTES
+  }
+}
 
 function loadFeedsFromStorage(): FeedSource[] {
   try {
@@ -35,6 +47,8 @@ export const useNewsStore = defineStore('news', () => {
   const error = ref<string | null>(null)
   const lastUpdated = ref<Date | null>(null)
   const activeSourceFilter = ref<string | null>(null)
+  const refreshIntervalMinutes = ref<number>(loadIntervalFromStorage())
+  let _timerId: ReturnType<typeof setInterval> | null = null
 
   const filteredNews = computed(() => {
     let items = news.value
@@ -89,9 +103,25 @@ export const useNewsStore = defineStore('news', () => {
     }
   }
 
+  function _startTimer() {
+    if (_timerId !== null) {
+      clearInterval(_timerId)
+      _timerId = null
+    }
+    if (refreshIntervalMinutes.value > 0) {
+      _timerId = setInterval(refresh, refreshIntervalMinutes.value * 60 * 1000)
+    }
+  }
+
+  function setRefreshInterval(minutes: number) {
+    refreshIntervalMinutes.value = minutes
+    localStorage.setItem(STORAGE_KEY_INTERVAL, String(minutes))
+    _startTimer()
+  }
+
   function startAutoRefresh() {
     refresh()
-    setInterval(refresh, REFRESH_INTERVAL_MS)
+    _startTimer()
   }
 
   return {
@@ -101,12 +131,14 @@ export const useNewsStore = defineStore('news', () => {
     error,
     lastUpdated,
     activeSourceFilter,
+    refreshIntervalMinutes,
     filteredNews,
     refresh,
     addFeed,
     removeFeed,
     toggleFeed,
     updateFeed,
+    setRefreshInterval,
     startAutoRefresh,
   }
 })

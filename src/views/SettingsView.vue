@@ -84,6 +84,24 @@
       </form>
     </section>
 
+    <!-- Auto-Refresh -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden mb-4" style="box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+      <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+        <p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide m-0">Automatisch aktualisieren</p>
+      </div>
+      <div class="flex items-center divide-x divide-slate-100 dark:divide-slate-700">
+        <button
+          v-for="option in [0, 1, 2, 5, 10]"
+          :key="option"
+          class="flex-1 py-3 text-sm font-medium transition-colors"
+          :class="store.refreshIntervalMinutes === option ? 'text-indigo-500' : 'text-slate-400 dark:text-slate-500'"
+          @click="store.setRefreshInterval(option)"
+        >
+          {{ option === 0 ? 'Aus' : `${option} min` }}
+        </button>
+      </div>
+    </div>
+
     <!-- Actions -->
     <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex flex-col gap-3">
       <button
