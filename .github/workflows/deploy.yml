@@ -1,0 +1,70 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Grant the GITHUB_TOKEN the minimum permissions required for Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment runs at a time; ongoing deployments are not cancelled
+# so a production deployment is never left in a half-finished state.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # ── Build ────────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Add VITE_API_BASE_URL as a repository secret:
+          # Settings → Secrets and variables → Actions → New repository secret
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+      # GitHub Pages has no server-side routing, so any direct URL like
+      # /settings would return 404. Copying index.html → 404.html lets
+      # the browser load the app and Vue Router takes over from there.
+      - name: Create 404.html for SPA routing
+        run: cp dist/index.html dist/404.html
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  # ── Deploy ───────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

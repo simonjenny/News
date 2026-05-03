@@ -1,0 +1,76 @@
+# B65 — NewsPWA Cursor Rules
+
+## Project Identity
+- App display name: **B65** (not "News")
+- UI language: **German**
+- Purpose: personal tech/IT RSS news aggregator PWA
+
+## Stack
+- Vue 3 + `<script setup lang="ts">` (Composition API only — no Options API)
+- TypeScript strict mode
+- Pinia for all state
+- Vue Router for navigation
+- Tailwind CSS 4 for styling
+- Vite as build tool
+- `vite-plugin-pwa` + Workbox for PWA/Service Worker
+
+## Code Rules
+
+### Vue Components
+- Always use `<script setup lang="ts">`
+- No Options API, no class components
+- Use `@/` alias for all src imports: `import { useNewsStore } from '@/stores/newsStore'`
+
+### TypeScript
+- All code must be fully typed
+- Use `NewsItem` from `@/types/news.ts` for article objects
+- No `any` unless absolutely unavoidable
+
+### Styling
+- Tailwind utility classes only
+- No custom CSS unless no Tailwind equivalent exists
+
+### State
+- All state lives in Pinia (`src/stores/newsStore.ts`)
+- Never write to `localStorage` directly from components or services
+- Only the store manages persistence
+
+### Data Fetching
+- Never fetch RSS feeds directly (CORS) — always use the proxy
+- Proxy URL: `${VITE_API_BASE_URL}?url=<encoded-rss-url>`
+- All fetch logic belongs in `src/services/feedService.ts`
+
+## Project Structure
+```
+src/
+  main.ts              # entry
+  App.vue              # root layout
+  components/
+    AppHeader.vue      # filter chips
+    NewsCard.vue       # article card
+  config/feeds.ts      # default feed list
+  router/index.ts      # routes
+  services/feedService.ts  # proxy + XML parsing
+  stores/newsStore.ts  # Pinia store
+  types/news.ts        # NewsItem interface
+  views/
+    HomeView.vue       # feed grid
+    SettingsView.vue   # feed management
+```
+
+## Dev Commands
+```sh
+npm run dev          # localhost:5173
+npm run build        # type-check + build
+npm run type-check   # vue-tsc only
+npm run deploy       # build + rsync
+```
+
+## Environment
+- `VITE_API_BASE_URL` — proxy API base URL
+- `RSYNC_DEST` — deploy rsync target
+- Both `.env` files are gitignored — never commit them
+
+## Off-limits
+- `dist/` — do not edit, gitignored
+- Scaffold files (`HelloWorld.vue`, `TheWelcome.vue`, `WelcomeItem.vue`, `src/components/icons/`) — unused leftovers, ignore or delete

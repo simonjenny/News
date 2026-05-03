@@ -16,36 +16,97 @@
     <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
       <TransitionGroup name="slide" tag="div" class="flex flex-col gap-2.5">
         <div v-for="feed in store.feeds" :key="feed.id"
-          class="flex items-center gap-3.5 px-3 py-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
-          <div class="w-3 h-3 rounded-full shrink-0" :style="{ background: feed.color }" />
-          <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-            <span class="font-semibold text-[0.9rem] text-slate-900 dark:text-slate-100">{{ feed.name }}</span>
-            <span class="text-xs text-slate-400 dark:text-slate-500 truncate">{{ feed.url }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <!-- Toggle -->
-            <button
-              class="p-0 bg-transparent border-none cursor-pointer"
-              :aria-label="feed.enabled ? 'Deaktivieren' : 'Aktivieren'"
-              @click="store.toggleFeed(feed.id)"
-            >
-              <span class="relative block w-10 h-[22px] rounded-full transition-colors duration-200"
-                :class="feed.enabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'">
-                <span class="absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
-                  :class="{ 'translate-x-[18px]': feed.enabled }" />
-              </span>
-            </button>
-            <!-- Delete -->
-            <button
-              class="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-400 dark:text-slate-500 cursor-pointer hover:bg-red-500/10 hover:border-red-500 hover:text-red-500 transition-all"
-              aria-label="Quelle entfernen"
-              @click="removeFeed(feed.id)"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </div>
+          class="flex items-center gap-3 px-3 py-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
+
+          <!-- Edit mode -->
+          <template v-if="editingId === feed.id">
+            <input
+              v-model="editForm.color"
+              type="color"
+              class="w-8 h-8 shrink-0 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer bg-transparent p-0.5"
+            />
+            <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+              <input
+                v-model="editForm.name"
+                type="text"
+                placeholder="Name"
+                required
+                class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 text-sm outline-none focus:border-indigo-500 transition-colors"
+              />
+              <input
+                v-model="editForm.url"
+                type="url"
+                placeholder="RSS Feed URL"
+                required
+                class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 text-sm outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button
+                class="flex items-center justify-center w-8 h-8 rounded-lg border border-indigo-500 bg-indigo-500 text-white cursor-pointer hover:bg-indigo-600 transition-all"
+                aria-label="Änderungen speichern"
+                @click="saveEdit"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button
+                class="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-400 dark:text-slate-500 cursor-pointer hover:border-slate-400 transition-all"
+                aria-label="Bearbeitung abbrechen"
+                @click="cancelEdit"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+          </template>
+
+          <!-- Display mode -->
+          <template v-else>
+            <div class="w-3 h-3 rounded-full shrink-0" :style="{ background: feed.color }" />
+            <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+              <span class="font-semibold text-[0.9rem] text-slate-900 dark:text-slate-100">{{ feed.name }}</span>
+              <span class="text-xs text-slate-400 dark:text-slate-500 truncate">{{ feed.url }}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <!-- Toggle -->
+              <button
+                class="p-0 bg-transparent border-none cursor-pointer"
+                :aria-label="feed.enabled ? 'Deaktivieren' : 'Aktivieren'"
+                @click="store.toggleFeed(feed.id)"
+              >
+                <span class="relative block w-10 h-[22px] rounded-full transition-colors duration-200"
+                  :class="feed.enabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'">
+                  <span class="absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
+                    :class="{ 'translate-x-[18px]': feed.enabled }" />
+                </span>
+              </button>
+              <!-- Edit -->
+              <button
+                class="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-400 dark:text-slate-500 cursor-pointer hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-indigo-500 transition-all"
+                aria-label="Quelle bearbeiten"
+                @click="startEdit(feed)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <!-- Delete -->
+              <button
+                class="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-400 dark:text-slate-500 cursor-pointer hover:bg-red-500/10 hover:border-red-500 hover:text-red-500 transition-all"
+                aria-label="Quelle entfernen"
+                @click="removeFeed(feed.id)"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </template>
+
         </div>
       </TransitionGroup>
     </section>
@@ -102,6 +163,39 @@
       </div>
     </div>
 
+    <!-- Import / Export -->
+    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+      <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100 m-0 mb-1">Einstellungen sichern</h2>
+      <p class="text-xs text-slate-400 dark:text-slate-500 m-0 mb-4">Quellen und Intervall als JSON-Datei exportieren oder importieren.</p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="inline-flex items-center gap-2 px-5 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg text-sm font-semibold cursor-pointer hover:border-indigo-500 transition-colors"
+          @click="exportSettings"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Exportieren
+        </button>
+        <button
+          class="inline-flex items-center gap-2 px-5 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg text-sm font-semibold cursor-pointer hover:border-indigo-500 transition-colors"
+          @click="triggerImport"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Importieren
+        </button>
+        <input
+          ref="importInputRef"
+          type="file"
+          accept="application/json,.json"
+          class="hidden"
+          @change="onImportFile"
+        />
+      </div>
+    </section>
+
     <!-- Actions -->
     <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex flex-col gap-3">
       <button
@@ -137,6 +231,8 @@ import type { FeedSource } from '@/config/feeds'
 const store = useNewsStore()
 const clearing = ref(false)
 
+// ── Cache clear ──────────────────────────────────────────────────────────────
+
 async function forceRefresh() {
   clearing.value = true
   try {
@@ -153,6 +249,8 @@ async function forceRefresh() {
     window.location.reload()
   }
 }
+
+// ── Add feed ─────────────────────────────────────────────────────────────────
 
 const newFeed = reactive({ name: '', url: '', color: '#6366f1' })
 
@@ -173,6 +271,94 @@ function addFeed() {
 function removeFeed(id: string) {
   if (confirm('Quelle wirklich entfernen?')) {
     store.removeFeed(id)
+  }
+}
+
+// ── Edit feed ────────────────────────────────────────────────────────────────
+
+const editingId = ref<string | null>(null)
+const editForm = reactive({ name: '', url: '', color: '#6366f1' })
+
+function startEdit(feed: FeedSource) {
+  editingId.value = feed.id
+  editForm.name = feed.name
+  editForm.url = feed.url
+  editForm.color = feed.color
+}
+
+function saveEdit() {
+  if (!editingId.value) return
+  const existing = store.feeds.find((f) => f.id === editingId.value)
+  if (!existing) return
+  store.updateFeed({
+    ...existing,
+    name: editForm.name,
+    url: editForm.url,
+    color: editForm.color,
+  })
+  editingId.value = null
+}
+
+function cancelEdit() {
+  editingId.value = null
+}
+
+// ── Export / Import ──────────────────────────────────────────────────────────
+
+function exportSettings() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    feeds: store.feeds,
+    refreshIntervalMinutes: store.refreshIntervalMinutes,
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `b65-settings-${new Date().toISOString().split('T')[0]}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+const importInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerImport() {
+  importInputRef.value?.click()
+}
+
+function isValidFeed(f: unknown): f is FeedSource {
+  if (typeof f !== 'object' || f === null) return false
+  const feed = f as Record<string, unknown>
+  return (
+    typeof feed.id === 'string' &&
+    typeof feed.name === 'string' &&
+    typeof feed.url === 'string' &&
+    typeof feed.color === 'string' &&
+    typeof feed.enabled === 'boolean'
+  )
+}
+
+async function onImportFile(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  try {
+    const text = await file.text()
+    const data = JSON.parse(text) as Record<string, unknown>
+    if (!Array.isArray(data.feeds) || !data.feeds.every(isValidFeed)) {
+      throw new Error('Ungültiges Format')
+    }
+    if (!confirm(`${data.feeds.length} Quellen importieren und aktuelle Einstellungen ersetzen?`)) return
+    store.setFeeds(data.feeds)
+    if (typeof data.refreshIntervalMinutes === 'number') {
+      store.setRefreshInterval(data.refreshIntervalMinutes)
+    }
+  } catch {
+    alert('Fehler beim Import: Ungültige oder beschädigte Datei.')
+  } finally {
+    if (importInputRef.value) importInputRef.value.value = ''
   }
 }
 </script>

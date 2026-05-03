@@ -103,6 +103,11 @@ export const useNewsStore = defineStore('news', () => {
     }
   }
 
+  function setFeeds(newFeeds: FeedSource[]) {
+    feeds.value = newFeeds
+    saveFeedConfig()
+  }
+
   function _startTimer() {
     if (_timerId !== null) {
       clearInterval(_timerId)
@@ -138,6 +143,7 @@ export const useNewsStore = defineStore('news', () => {
     removeFeed,
     toggleFeed,
     updateFeed,
+    setFeeds,
     setRefreshInterval,
     startAutoRefresh,
   }

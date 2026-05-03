@@ -5,6 +5,9 @@
       <RouterView />
     </div>
 
+    <!-- PWA update banner -->
+    <UpdatePrompt />
+
     <!-- Floating FAB – nur auf Startseite -->
     <div
       v-if="route.name === 'home'"
@@ -57,6 +60,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useNewsStore } from '@/stores/newsStore'
+import UpdatePrompt from '@/components/UpdatePrompt.vue'
 
 const store = useNewsStore()
 const route = useRoute()

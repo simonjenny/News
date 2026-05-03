@@ -94,3 +94,14 @@ Im Projekt sind bereits zwei Feed-Quellen konfiguriert:
 - Feed-Einstellungen werden im Browser `localStorage` gespeichert
 - Nachrichten werden ebenfalls lokal zwischengespeichert, um schnellere Ladezeiten zu ermöglichen
 - Fehler beim Laden der Feeds werden in der Oberfläche angezeigt
+
+## KI-Coding-Assistenten
+
+Dieses Repository enthält Instruktionsdateien für KI-gestützte Entwicklungstools:
+
+| Datei | Tool |
+|---|---|
+| `AGENTS.md` | OpenCode, Devin und generische Agenten |
+| `CLAUDE.md` | Anthropic Claude Code |
+| `.cursorrules` | Cursor AI |
+| `.github/copilot-instructions.md` | GitHub Copilot |
