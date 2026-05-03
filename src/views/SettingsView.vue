@@ -13,7 +13,7 @@
     </div>
 
     <!-- Feed list -->
-    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+    <section v-if="store.feeds.length" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
       <TransitionGroup name="slide" tag="div" class="flex flex-col gap-2.5">
         <div v-for="feed in store.feeds" :key="feed.id"
           class="flex items-center gap-3 px-3 py-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
