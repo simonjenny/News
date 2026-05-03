@@ -46,13 +46,25 @@
     </div>
 
     <!-- Footer -->
-    <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-700">
+    <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
       <span class="inline-flex items-center gap-1.5 text-[0.8rem] font-semibold text-indigo-500 dark:text-indigo-400">
         Lesen
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </span>
+      <button
+        @click.stop="shareArticle"
+        class="text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors"
+        :aria-label="`Artikel teilen: ${item.title}`"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.5" />
+          <path d="M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.5" />
+          <path d="M18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8.5 13.5 15 10.5M15.5 15.5l-6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </button>
     </div>
   </article>
 </template>
@@ -84,5 +96,25 @@ function formatDate(date: Date): string {
   if (days < 7) return `vor ${days} Tag${days > 1 ? 'en' : ''}`
 
   return date.toLocaleDateString('de-CH', { day: 'numeric', month: 'short' })
+}
+
+function shareArticle() {
+  if (navigator.share) {
+    navigator.share({
+      title: props.item.title,
+      url: props.item.link
+    }).catch(() => {
+      // User cancelled or sharing failed
+    })
+  } else {
+    // Fallback for browsers that don't support Web Share API
+    navigator.clipboard.writeText(props.item.link).then(() => {
+      // Show a toast or notification that the link was copied
+      alert('Link in die Zwischenablage kopiert!')
+    }).catch(() => {
+      // Fallback for browsers that don't support clipboard API
+      alert(`Link: ${props.item.link}`)
+    })
+  }
 }
 </script>
