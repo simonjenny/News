@@ -69,8 +69,6 @@ npm install          # Install dependencies
 npm run dev          # Start dev server at http://localhost:5173
 npm run build        # Type-check + production build → dist/
 npm run preview      # Preview the production build locally
-npm run deploy       # Build + rsync to RSYNC_DEST
-npm run type-check   # Run vue-tsc type checking only
 ```
 
 ## Coding Conventions

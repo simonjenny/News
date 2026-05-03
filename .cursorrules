@@ -62,8 +62,7 @@ src/
 ```sh
 npm run dev          # localhost:5173
 npm run build        # type-check + build
-npm run type-check   # vue-tsc only
-npm run deploy       # build + rsync
+npm run preview      # preview build locally
 ```
 
 ## Environment

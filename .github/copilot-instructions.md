@@ -57,5 +57,5 @@ Never commit `.env` or `.env.development`.
 ```sh
 npm run dev          # Dev server at http://localhost:5173
 npm run build        # Type-check + production build
-npm run type-check   # vue-tsc only
+npm run preview      # Preview the production build locally
 ```

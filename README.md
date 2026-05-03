@@ -55,13 +55,11 @@ Die App läuft dann standardmäßig unter `http://localhost:5173`.
 npm run build
 ```
 
-Optionales Deployment-Skript:
+Für die lokale Vorschau des Builds:
 
 ```sh
-npm run deploy
+npm run preview
 ```
-
-> Das Deployment-Skript ist für eine spezifische Zielumgebung konfiguriert. Prüfen Sie die Route und passen Sie sie bei Bedarf an.
 
 ## Konfiguration der Feed-API
 

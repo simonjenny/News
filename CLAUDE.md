@@ -55,8 +55,6 @@ Both `.env` and `.env.development` are gitignored. Never commit them.
 npm run dev          # Dev server → http://localhost:5173
 npm run build        # Type-check + Vite build → dist/
 npm run preview      # Serve dist/ locally
-npm run type-check   # vue-tsc only
-npm run deploy       # build + rsync to RSYNC_DEST
 ```
 
 ## Adding Features
