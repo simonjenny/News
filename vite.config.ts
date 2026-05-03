@@ -12,31 +12,31 @@ export default defineConfig({
     tailwindcss(),
     vue(),
     vueDevTools(),
-    VitePWA({
-      registerType: 'prompt',
-      injectRegister: 'auto',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\/api\/feeds/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-feeds',
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
-              networkTimeoutSeconds: 10,
+      VitePWA({
+        registerType: 'autoUpdate',
+        injectRegister: 'auto',
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg}'],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/.*\/api\/feeds/,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-feeds',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
+                networkTimeoutSeconds: 10,
+              },
             },
-          },
-          {
-            urlPattern: /^https?:\/\/.*\.(png|jpg|jpeg|webp|svg|gif)/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
+            {
+              urlPattern: /^https?:\/\/.*\.(png|jpg|jpeg|webp|svg|gif)/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images',
+                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              },
             },
-          },
-        ],
-      },
+          ],
+        },
       manifest: {
         name: 'B65',
         short_name: 'B65',

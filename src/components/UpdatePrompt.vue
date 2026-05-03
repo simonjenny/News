@@ -38,13 +38,14 @@
 <script setup lang="ts">
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 
-const { needRefresh, updateServiceWorker } = useRegisterSW()
+const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW()
 
 function update() {
   updateServiceWorker(true)
 }
 
 function dismiss() {
+  offlineReady.value = false
   needRefresh.value = false
 }
 </script>
