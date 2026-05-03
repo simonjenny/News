@@ -1,8 +1,10 @@
 import type { NewsItem } from '@/types/news'
 import type { FeedSource } from '@/config/feeds'
 
-// Backend API base URL – adjust to match your Laravel app
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api'
+// Backend API base URL — set VITE_API_BASE_URL in .env or as a CI secret.
+// Using || instead of ?? so an empty string (e.g. unset GitHub Actions secret)
+// also falls back to the default rather than producing broken relative URLs.
+const API_BASE: string = import.meta.env.VITE_API_BASE_URL || '/api'
 
 function extractImage(item: Element): string | null {
   // media:content
