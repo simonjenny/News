@@ -25,6 +25,12 @@ function extractImage(item: Element): string | null {
   return null
 }
 
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = text
+  return textarea.value
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, ' ')
@@ -44,7 +50,8 @@ function parseFeedXml(xml: string, source: FeedSource): NewsItem[] {
   const items = Array.from(doc.querySelectorAll('item'))
 
   return items.map((item, index) => {
-    const title = item.querySelector('title')?.textContent?.trim() ?? 'Kein Titel'
+    const titleRaw = item.querySelector('title')?.textContent?.trim() ?? 'Kein Titel'
+    const title = decodeHtmlEntities(titleRaw)
     const link = item.querySelector('link')?.textContent?.trim() ?? '#'
     const pubDateRaw = item.querySelector('pubDate')?.textContent ?? ''
     const description = item.querySelector('description')?.textContent ?? ''
