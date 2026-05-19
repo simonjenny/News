@@ -1,5 +1,6 @@
 export interface NewsItem {
   id: string
+  guid: string | null
   title: string
   summary: string
   imageUrl: string | null

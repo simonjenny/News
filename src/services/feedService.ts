@@ -56,9 +56,11 @@ function parseFeedXml(xml: string, source: FeedSource): NewsItem[] {
     const pubDateRaw = item.querySelector('pubDate')?.textContent ?? ''
     const description = item.querySelector('description')?.textContent ?? ''
     const summary = stripHtml(description).slice(0, 200)
+    const guid = item.querySelector('guid')?.textContent?.trim() ?? null
 
     return {
       id: `${source.id}-${index}-${Date.now()}`,
+      guid,
       title,
       summary,
       imageUrl: extractImage(item),
@@ -100,6 +102,44 @@ export async function fetchAllFeeds(sources: FeedSource[]): Promise<NewsItem[]> 
     }
   }
 
-  // Sort by date descending
-  return items.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
+  // Sort by date descending, then deduplicate within each source
+  const sorted = items.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
+  return deduplicateItems(sorted)
+}
+
+function normalizeTitle(title: string): Set<string> {
+  return new Set(
+    title.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean)
+  )
+}
+
+function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
+  const intersection = new Set([...a].filter(x => b.has(x)))
+  const union = new Set([...a, ...b])
+  return union.size === 0 ? 1 : intersection.size / union.size
+}
+
+function deduplicateItems(items: NewsItem[]): NewsItem[] {
+  const bySource = new Map<string, NewsItem[]>()
+  for (const item of items) {
+    const group = bySource.get(item.sourceId) ?? []
+    group.push(item)
+    bySource.set(item.sourceId, group)
+  }
+
+  const result: NewsItem[] = []
+  for (const group of bySource.values()) {
+    // Already sorted newest-first; first match we keep is always the latest version
+    const kept: NewsItem[] = []
+    for (const candidate of group) {
+      const isDuplicate = kept.some(existing => {
+        if (candidate.guid && existing.guid === candidate.guid) return true
+        if (candidate.imageUrl && existing.imageUrl === candidate.imageUrl) return true
+        return jaccardSimilarity(normalizeTitle(existing.title), normalizeTitle(candidate.title)) >= 0.65
+      })
+      if (!isDuplicate) kept.push(candidate)
+    }
+    result.push(...kept)
+  }
+  return result
 }
