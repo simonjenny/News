@@ -30,15 +30,9 @@
     </div>
 
     <!-- Skeleton loading -->
-    <div v-if="store.loading && store.news.length === 0" class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
-      <div v-for="n in 6" :key="n" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-        <div class="aspect-video bg-slate-100 dark:bg-slate-700 animate-pulse" />
-        <div class="p-4 flex flex-col gap-2.5">
-          <div class="h-3.5 w-2/5 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-          <div class="h-3.5 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-          <div class="h-3.5 w-3/4 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-        </div>
-      </div>
+    <div v-if="store.loading && store.news.length === 0"
+         class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
+      <SkeletonCard v-for="n in 6" :key="n" />
     </div>
 
     <!-- News grid -->
@@ -70,6 +64,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import NewsCard from '@/components/NewsCard.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 import { useNewsStore } from '@/stores/newsStore'
 
 const store = useNewsStore()

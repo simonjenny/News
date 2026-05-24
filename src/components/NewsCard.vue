@@ -5,13 +5,20 @@
   >
     <!-- Image -->
     <div class="relative aspect-video bg-slate-100 dark:bg-slate-700 overflow-hidden">
+      <!-- Shimmer-Overlay während Image lädt -->
+      <div
+        v-if="item.imageUrl && !imgLoaded"
+        class="absolute inset-0 animate-shimmer"
+      />
       <img
         v-if="item.imageUrl"
         :src="item.imageUrl"
         :alt="item.title"
         loading="lazy"
         decoding="async"
-        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+        class="w-full h-full object-cover transition-opacity duration-500"
+        :class="imgLoaded ? 'opacity-100' : 'opacity-0'"
+        @load="onImgLoad"
         @error="onImgError"
       />
       <div v-else class="absolute inset-0 flex items-center justify-center text-slate-400 dark:text-slate-600">
@@ -70,17 +77,25 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { NewsItem } from '@/types/news'
 
 const props = defineProps<{ item: NewsItem }>()
+
+const imgLoaded = ref(false)
 
 function openLink() {
   window.open(props.item.link, '_blank', 'noopener,noreferrer')
 }
 
+function onImgLoad() {
+  imgLoaded.value = true
+}
+
 function onImgError(e: Event) {
   const el = e.target as HTMLImageElement
   el.style.display = 'none'
+  imgLoaded.value = true  // Shimmer entfernen, damit SVG-Fallback sichtbar ist
 }
 
 function formatDate(date: Date): string {
