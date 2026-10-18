@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-full flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100
+  <div class="min-h-full flex flex-col bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100
               pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
     <div class="flex-1">
       <RouterView />
@@ -11,8 +11,7 @@
     <!-- Floating FAB – nur auf Startseite -->
     <div
       v-if="route.name === 'home'"
-      class="fixed z-50"
-      style="bottom: 20px; right: 30px;"
+      class="fixed z-50 bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] right-[calc(env(safe-area-inset-right,0px)+1.25rem)]"
     >
       <Transition name="fab" mode="out-in">
 
@@ -21,7 +20,7 @@
           v-if="showScrollTop"
           key="top"
           aria-label="Nach oben scrollen"
-          class="w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white transition-colors"
+          class="w-12 h-12 rounded-full bg-stone-900 hover:bg-stone-700 dark:bg-stone-100 dark:hover:bg-stone-300 shadow-lg shadow-black/20 flex items-center justify-center text-white dark:text-stone-900 transition-colors"
           @click="scrollToTop"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -35,7 +34,7 @@
           key="settings"
           to="/settings"
           aria-label="Einstellungen"
-          class="w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white transition-colors"
+          class="w-12 h-12 rounded-full bg-stone-900 hover:bg-stone-700 dark:bg-stone-100 dark:hover:bg-stone-300 shadow-lg shadow-black/20 flex items-center justify-center text-white dark:text-stone-900 transition-colors"
         >
           <template v-if="isLoading">
             <svg class="w-6 h-6 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
