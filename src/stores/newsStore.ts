@@ -59,13 +59,22 @@ export const useNewsStore = defineStore('news', () => {
   })
 
   async function refresh() {
+    if (loading.value) return
     loading.value = true
     error.value = null
     try {
-      const items = await fetchAllFeeds(feeds.value)
-      news.value = items
-      lastUpdated.value = new Date()
-      localStorage.setItem(STORAGE_KEY_NEWS, JSON.stringify(items))
+      const { items, errors } = await fetchAllFeeds(feeds.value)
+      // Never replace existing news (or the cache) with an empty result.
+      if (items.length > 0) {
+        news.value = items
+        lastUpdated.value = new Date()
+        localStorage.setItem(STORAGE_KEY_NEWS, JSON.stringify(items))
+      }
+      if (errors.length > 0) {
+        error.value = `Nicht geladen: ${errors.join(' · ')}`
+      } else if (items.length === 0 && feeds.value.some((f) => f.enabled)) {
+        error.value = 'Die Quellen lieferten keine Artikel.'
+      }
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Unbekannter Fehler'
     } finally {
@@ -124,9 +133,23 @@ export const useNewsStore = defineStore('news', () => {
     _startTimer()
   }
 
+  const STALE_AFTER_MS = 5 * 60 * 1000
+
+  function _onVisible() {
+    if (document.visibilityState !== 'visible') return
+    const stale = !lastUpdated.value || Date.now() - lastUpdated.value.getTime() > STALE_AFTER_MS
+    if (error.value || stale) refresh()
+  }
+
   function startAutoRefresh() {
-    refresh()
+    // One quick retry: at app start / after wake-up the network is often not ready yet.
+    refresh().then(() => {
+      if (error.value) setTimeout(refresh, 5000)
+    })
     _startTimer()
+    // Works even when the interval is set to "Aus".
+    window.addEventListener('online', refresh)
+    document.addEventListener('visibilitychange', _onVisible)
   }
 
   return {

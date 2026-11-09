@@ -36,7 +36,7 @@ export default defineConfig({
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg}'],
           runtimeCaching: [
             {
-              urlPattern: /^https:\/\/.*\/api\/feeds/,
+              urlPattern: /^https:\/\/.*\/feed\?url=/,
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'api-feeds',

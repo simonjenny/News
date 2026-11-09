@@ -5,6 +5,7 @@ import type { FeedSource } from '@/config/feeds'
 // Using || instead of ?? so an empty string (e.g. unset GitHub Actions secret)
 // also falls back to the default rather than producing broken relative URLs.
 const API_BASE: string = import.meta.env.VITE_API_BASE_URL || '/api'
+const FETCH_TIMEOUT_MS = 15_000
 
 function extractImage(item: Element): string | null {
   // media:content
@@ -40,14 +41,20 @@ function stripHtml(html: string): string {
 function parseFeedXml(xml: string, source: FeedSource): NewsItem[] {
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'application/xml')
-  const items = Array.from(doc.querySelectorAll('item'))
+  if (doc.querySelector('parsererror')) throw new Error('Ungültiges XML')
+  // RSS uses <item>, Atom uses <entry>
+  const items = Array.from(doc.querySelectorAll('item, entry'))
 
   return items.map((item, index) => {
     const titleRaw = item.querySelector('title')?.textContent?.trim() ?? 'Kein Titel'
     const title = decodeHtmlEntities(titleRaw)
-    const link = item.querySelector('link')?.textContent?.trim() ?? '#'
-    const pubDateRaw = item.querySelector('pubDate')?.textContent ?? ''
-    const description = item.querySelector('description')?.textContent ?? ''
+    const linkEl = item.querySelector('link')
+    const link = linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || '#'
+    const pubDateRaw =
+      (item.querySelector('pubDate') ?? item.querySelector('published') ?? item.querySelector('updated'))
+        ?.textContent ?? ''
+    const description =
+      (item.querySelector('description') ?? item.querySelector('summary'))?.textContent ?? ''
     const summary = stripHtml(description).slice(0, 200)
     const guid = item.querySelector('guid')?.textContent?.trim() ?? null
 
@@ -69,35 +76,46 @@ function parseFeedXml(xml: string, source: FeedSource): NewsItem[] {
 export async function fetchFeed(source: FeedSource): Promise<NewsItem[]> {
   // The Laravel backend exposes a proxy endpoint to avoid CORS issues:
   // GET /api/feed?url=<encoded-feed-url>
-  const proxyUrl = `${API_BASE}/feed?url=${encodeURIComponent(source.url)}`
+  const proxyUrl = `${API_BASE.replace(/\/+$/, '')}/feed?url=${encodeURIComponent(source.url)}`
 
   const response = await fetch(proxyUrl, {
     headers: { Accept: 'application/xml, text/xml, */*' },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
 
   if (!response.ok) {
-    throw new Error(`Feed konnte nicht geladen werden: ${source.name} (${response.status})`)
+    throw new Error(`HTTP ${response.status}`)
   }
 
   const xml = await response.text()
   return parseFeedXml(xml, source)
 }
 
-export async function fetchAllFeeds(sources: FeedSource[]): Promise<NewsItem[]> {
+export interface FetchAllResult {
+  items: NewsItem[]
+  /** One message per failed feed, e.g. "SRF: HTTP 502" */
+  errors: string[]
+}
+
+export async function fetchAllFeeds(sources: FeedSource[]): Promise<FetchAllResult> {
   const enabled = sources.filter((s) => s.enabled)
 
   const results = await Promise.allSettled(enabled.map((s) => fetchFeed(s)))
 
   const items: NewsItem[] = []
-  for (const result of results) {
+  const errors: string[] = []
+  results.forEach((result, i) => {
     if (result.status === 'fulfilled') {
       items.push(...result.value)
+    } else {
+      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason)
+      errors.push(`${enabled[i]!.name}: ${reason}`)
     }
-  }
+  })
 
   // Sort by date descending, then deduplicate within each source
   const sorted = items.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
-  return deduplicateItems(sorted)
+  return { items: deduplicateItems(sorted), errors }
 }
 
 function normalizeTitle(title: string): Set<string> {
